@@ -80,6 +80,25 @@ class Red_Black_Tree:
     # Initialize self.root to the sentinel T.nil    
     self.root = self.nil
     self.root.p = self.nil
+    self.root.l = self.nil
+    self.root.r = self.nil
+    
+    # Some bookeeping information
+    self.num_nodes = 0
+
+  def isEmpty(self):
+    """
+    Returns True if there are nodes in the tree and False otherwise.
+    """
+    
+    return self.root == self.nil
+  
+  def Size(self):
+    """
+    Returns the number of nodes in the tree.
+    """
+    
+    return self.num_nodes
 
   def Search(self, x : Red_Black_Node, k : int) -> Red_Black_Node:
     """
@@ -239,6 +258,8 @@ class Red_Black_Tree:
     z.color = RED
     
     self.Insert_Fixup(z)
+    
+    self.num_nodes += 1
           
   def Delete(self, key : int) -> None:
     """
@@ -257,6 +278,9 @@ class Red_Black_Tree:
     """
     
     z = self.Search(self.root, key)
+    
+    if z == self.nil:
+      return None
     
     # Throughout this algorithm, we keep track of z, the node to be deleted,
     # y, a node that may cause violations of the Red Black properties, and x,
@@ -299,6 +323,8 @@ class Red_Black_Tree:
     # We thus only have to fix the tree if y was originally black.
     if y_original_color == BLACK:
       self.Delete_Fixup(x)
+    
+    self.num_nodes -= 1
   
   ################## Auxiliary Funcntions ######################
   
@@ -511,6 +537,8 @@ class Red_Black_Tree:
       
       # x is its parent's left child
       if x == x.p.left:
+        
+        # We call x's sibling w
         w = x.p.right
         
         # x is BLACK-BLACK and x's sibling w is RED (Case 1 in CLRS).

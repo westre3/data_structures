@@ -1,11 +1,13 @@
+import numpy as np
 import unittest
-
-from data_structures import Red_Black_Node, Red_Black_Tree, BLACK, RED
+from red_black_trees import Red_Black_Node, Red_Black_Tree, BLACK, RED
 
 def Red_Black_Tree_Suite():
   suite = unittest.TestSuite()
   suite.addTest(Red_Black_Tree_Basic())
   suite.addTest(Red_Black_Tree_Insert())
+  suite.addTest(Red_Black_Tree_Delete())
+  suite.addTest(Red_Black_Tree_Advanced())
   return suite
 
 class Common_Functions(unittest.TestCase):
@@ -28,7 +30,12 @@ class Common_Functions(unittest.TestCase):
       self.recursive_bst(g, n.right)
   
   def test_bst(self, g):
-    self.recursive_bst(g, g.root)
+    
+    # BST property holds if tree is empty
+    if g.root == g.nil:
+      return True
+    else:
+      self.recursive_bst(g, g.root)
 
   def recursive_property_one(self, g, n):
     self.assertIn(n.color, [RED, BLACK], f"Property 1 Violated : Node with key {n.key} is neither RED nor BLACK")
@@ -41,8 +48,10 @@ class Common_Functions(unittest.TestCase):
   
   def test_property_one(self, g):
     self.assertIn(g.nil.color, [RED, BLACK], "Property 1 Violated : Leaf node is neither RED nor BLACK")
-    
-    self.recursive_property_one(g, g.root)
+
+    # Don't recurse on empty tree
+    if g.root != g.nil:
+      self.recursive_property_one(g, g.root)
   
   def test_property_two(self, g):
     self.assertEqual(g.root.color, BLACK, "Property 2 Violated : Root node is not BLACK")
@@ -62,7 +71,11 @@ class Common_Functions(unittest.TestCase):
       self.recursive_property_four(g, n.right)
   
   def test_property_four(self, g):
-    self.recursive_property_four(g, g.root)
+    # Do not recurse on empty tree
+    if g.root == g.nil:
+      return True
+    else:
+      self.recursive_property_four(g, g.root)
   
   def recursive_property_five(self, g, n, bh):
     if n == g.nil:
@@ -87,7 +100,7 @@ class Common_Functions(unittest.TestCase):
     self.test_property_four(g)
     self.test_property_five(g)
 
-class Red_Black_Tree_Basic(unittest.TestCase):
+class Red_Black_Tree_Basic(Common_Functions):
   """
   Tests for basic functionality of Red Black Trees
   """
@@ -100,7 +113,10 @@ class Red_Black_Tree_Basic(unittest.TestCase):
             self.test_max,
             self.test_search,
             self.test_successor,
-            self.test_predecessor
+            self.test_predecessor,
+            self.test_delete_empty,
+            self.test_insert_delete,
+            self.test_insert_delete2
             ]
     
     for test in tests:
@@ -113,6 +129,8 @@ class Red_Black_Tree_Basic(unittest.TestCase):
     
     g = Red_Black_Tree()
     
+    self.assertTrue(g.isEmpty(), "Calling isEmpty() on empty tree return False")
+    
     # In an empty tree, the root node is the leaf node
     self.assertEqual(g.root, g.nil, "Root node in empty tree is not equal to leaf")
     
@@ -121,6 +139,9 @@ class Red_Black_Tree_Basic(unittest.TestCase):
     
     # In an empty tree, the root node is BLACK
     self.assertEqual(g.root.color, BLACK, "Root node in empty tree is not BLACK")
+    
+    # In an empty tree, the leaf node is BLACK
+    self.assertEqual(g.nil.color, BLACK, "Leaf node in an empty tree is not BLACK")
 
   def test_insert(self):
     """
@@ -145,6 +166,97 @@ class Red_Black_Tree_Basic(unittest.TestCase):
     self.assertEqual(g.root.color, BLACK, "Root node is not BLACK")
     self.assertEqual(g.nil.color, BLACK, "Leaf node is not BLACK")
   
+  def test_delete_empty(self):
+    """
+    Test that a Delete on an empty tree does nothing
+    """
+    
+    g = Red_Black_Tree()
+    
+    self.assertTrue(g.isEmpty(), "Calling isEmpty on empty tree returns False")
+    
+    # In an empty tree, the root node is the leaf node
+    self.assertEqual(g.root, g.nil, "Root node in empty tree is not equal to leaf")
+    
+    # In an empty tree, the root's parent is the leaf
+    self.assertEqual(g.root.p, g.nil, "Root node's parent in empty tree is not leaf")
+    
+    # In an empty tree, the root node is BLACK
+    self.assertEqual(g.root.color, BLACK, "Root node in empty tree is not BLACK")
+    
+    # In an empty tree, the leaf node is BLACK
+    self.assertEqual(g.nil.color, BLACK, "Leaf node in an empty tree is not BLACK")
+    
+    g.Delete(5) # arbitrary number
+    
+    self.assertTrue(g.isEmpty(), "Deleting node in empty tree causes isEmpty to return False")
+    
+    # In an empty tree, the root node is the leaf node
+    self.assertEqual(g.root, g.nil, "Root node in empty tree after Delete is not equal to leaf")
+    
+    # In an empty tree, the root's parent is the leaf
+    self.assertEqual(g.root.p, g.nil, "Root node's parent in empty tree after Delete is not leaf")
+    
+    # In an empty tree, the root node is BLACK
+    self.assertEqual(g.root.color, BLACK, "Root node in empty tree after Delete is not BLACK")
+    
+    # In an empty tree, the leaf node is BLACK
+    self.assertEqual(g.nil.color, BLACK, "Leaf node in an empty tree after Delete is not BLACK")
+  
+  def test_insert_delete(self):
+    """
+    Tests that inserting a node, then deleting it leaves the tree empty
+    """
+    
+    g = Red_Black_Tree()
+    
+    self.assertTrue(g.isEmpty(), "Calling isEmpty on empty tree returns False")
+    
+    g.Insert(5) # arbitrary number
+    
+    self.assertFalse(g.isEmpty(), "isEmpty returns True after inserting a node")
+    
+    g.Delete(5)
+    
+    self.assertTrue(g.isEmpty(), "Inserting then deleting a node causes isEmpty to return False")
+    
+    # Verify that properties of an empty tree hold
+    
+    # In an empty tree, the root node is the leaf node
+    self.assertEqual(g.root, g.nil, "Root node in empty tree is not equal to leaf")
+    
+    # In an empty tree, the root's parent is the leaf
+    self.assertEqual(g.root.p, g.nil, "Root node's parent in empty tree is not leaf")
+    
+    # In an empty tree, the root node is BLACK
+    self.assertEqual(g.root.color, BLACK, "Root node in empty tree is not BLACK")
+    
+    # In an empty tree, the leaf node is BLACK
+    self.assertEqual(g.nil.color, BLACK, "Leaf node in an empty tree is not BLACK")
+  
+  def test_insert_delete2(self):
+    """
+    Tests that inserting a node, then deleting a different node leaves the node
+    inserted
+    """
+    
+    g = Red_Black_Tree()
+    
+    self.assertTrue(g.isEmpty(), "Calling isEmpty on empty tree returns False")
+    
+    g.Insert(5) # arbitrary number
+    
+    self.assertFalse(g.isEmpty(), "isEmpty returns True after inserting a node")
+    
+    g.Delete(4)
+    
+    self.assertFalse(g.isEmpty(), "Inserting a node then deleting a different node causes isEmpty to return True")
+    
+    tree_size = g.Size()
+    self.assertEqual(tree_size, 1, f"Inserting a node then deleting a different node causes Size() to return {g.Size()} instead of 1")
+
+    self.assertNotEqual(g.Search(g.root, 5), g.nil, "Inserting a node then deleting a different node results in Search() not finding the inserted node")
+
   def test_min(self):
     """
     Test the min function
@@ -692,29 +804,556 @@ class Red_Black_Tree_Insert(Common_Functions):
     self.test_bst(g)
     self.test_properties(g)
     
-class Red_Black_Tree_Delete(unittest.TestCase):
-  pass
+class Red_Black_Tree_Delete(Common_Functions):
+  def runTest(self):
+    tests = [
+            self.test_case_4_1,
+            self.test_case_4_2,
+            self.test_case_3_1,
+            self.test_case_3_2,
+            self.test_case_2_1,
+            self.test_case_2_2,
+            self.test_case_1_1,
+            self.test_case_1_2
+            ]
 
-class Red_Black_Tree_Advanced(unittest.TestCase):  
-  def test_bst_property(self):
+    for test in tests:
+      test()
+  
+  def test_case_1_1(self):
     """
-    Insert 100 nodes in the Red Black Tree and verify that the Binary Search
-    Tree property is maintained
+    Test that Delete_Fixup resolves Case 1 of CLRS when x is its parent's left
+    child and w is RED
+    """
+    
+    g = Red_Black_Tree()
+    
+    n4 = Red_Black_Node(4)
+    n2 = Red_Black_Node(2)
+    n5 = Red_Black_Node(5)
+    n1 = Red_Black_Node(1)
+    n3 = Red_Black_Node(3)
+    n7 = Red_Black_Node(7)
+    n6 = Red_Black_Node(6)
+    n8 = Red_Black_Node(8)
+    
+    n4.color = BLACK
+    n2.color = BLACK
+    n5.color = BLACK
+    n1.color = BLACK
+    n3.color = BLACK
+    n7.color = RED
+    n6.color = BLACK
+    n8.color = BLACK
+    
+    n4.p = g.nil
+    n4.left = n2
+    n2.p = n4
+    n4.right = n5
+    n5.p = n4
+    
+    n2.left = n1
+    n1.p = n2
+    n2.right = n3
+    n3.p = n2
+    
+    n1.left = g.nil
+    n1.right = g.nil
+    
+    n3.left = g.nil
+    n3.right = g.nil
+    
+    n5.left = g.nil
+    g.nil.p = n5
+    n5.right = n7
+    n7.p = n5
+    
+    n7.left = n6
+    n6.p = n7
+    n7.right = n8
+    n8.p = n7
+    
+    n6.left = g.nil
+    n6.right = g.nil
+    
+    n8.left = g.nil
+    n8.right = g.nil
+    
+    g.root = n4
+    g.Delete_Fixup(g.nil)
+    
+    self.test_bst(g)
+    self.test_properties(g)
+  
+  def test_case_1_2(self):
+    """
+    Test that Delete_Fixup resolves Case 1 of CLRS when x is its parent's right
+    child and w is RED
+    """
+    
+    g = Red_Black_Tree()
+    
+    n4 = Red_Black_Node(4)
+    n2 = Red_Black_Node(2)
+    n8 = Red_Black_Node(8)
+    n1 = Red_Black_Node(1)
+    n3 = Red_Black_Node(3)
+    n6 = Red_Black_Node(6)
+    n5 = Red_Black_Node(5)
+    n7 = Red_Black_Node(7)
+    
+    n4.color = BLACK
+    n2.color = BLACK
+    n8.color = BLACK
+    n1.color = BLACK
+    n3.color = BLACK
+    n6.color = RED
+    n5.color = BLACK
+    n7.color = BLACK
+    
+    n4.left = n2
+    n2.p = n4
+    n4.right = n8
+    n8.p = n4
+    
+    n2.left = n1
+    n1.p = n2
+    n2.right = n3
+    n3.p = n2
+    
+    n1.left = g.nil
+    n1.right = g.nil
+    
+    n3.left = g.nil
+    n3.right = g.nil
+    
+    n8.left = n6
+    n6.p = n8
+    n8.right = g.nil
+    g.nil.p = n8
+    
+    n6.left = n5
+    n5.p = n6
+    n6.right = n7
+    n7.p = n6
+    
+    n5.left = g.nil
+    n5.right = g.nil
+    
+    n7.left = g.nil
+    n7.right = g.nil
+    
+    g.root = n4
+    g.Delete_Fixup(g.nil)
+    
+    self.test_bst(g)
+    self.test_properties(g)
+  
+  def test_case_2_1(self):
+    """
+    Test that Delete_Fixup resolves Case 2 of CLRS when x is its parent's left
+    child and w is BLACK with two BLACK children
+    """
+    
+    g = Red_Black_Tree()
+    
+    n2 = Red_Black_Node(2)
+    n1 = Red_Black_Node(1)
+    n3 = Red_Black_Node(3)
+    n4 = Red_Black_Node(4)
+    
+    n2.color = BLACK
+    n1.color = BLACK
+    n3.color = RED
+    n4.color = BLACK
+    
+    n2.p = g.nil
+    n2.left = n1
+    n1.p = n2
+    n2.right = n3
+    n3.p = n2
+    
+    n1.left = g.nil
+    n1.right = g.nil
+    
+    n3.left = g.nil
+    g.nil.p = n3
+    n3.right = n4
+    n4.p = n3
+    
+    n4.left = g.nil
+    n4.right = g.nil
+    
+    g.root = n2
+    g.Delete_Fixup(g.nil)
+    
+    self.test_bst(g)
+    self.test_properties(g)
+
+  def test_case_2_2(self):
+    """
+    Test that Delete_Fixup resolves Case 2 of CLRS when x is its parent's right
+    child and w is BLACK with two BLACK children
+    """
+    
+    g = Red_Black_Tree()
+    
+    n2 = Red_Black_Node(2)
+    n1 = Red_Black_Node(1)
+    n4 = Red_Black_Node(4)
+    n3 = Red_Black_Node(3)
+    
+    n2.color = BLACK
+    n1.color = BLACK
+    n4.color = RED
+    n3.color = BLACK
+    
+    n2.p = g.nil
+    n2.left = n1
+    n1.p = n2
+    n2.right = n4
+    n4.p = n2
+    
+    n1.left = g.nil
+    n1.right = g.nil
+    
+    n4.left = n3
+    n3.p = n4
+    n4.right = g.nil
+    g.nil.p = n4
+    
+    n3.left = g.nil
+    n3.right = g.nil
+    
+    g.root = n2
+    g.Delete_Fixup(g.nil)
+    
+    self.test_bst(g)
+    self.test_properties(g)
+  
+  def test_case_3_1(self):
+    """
+    Test that Delete_Fixup resolves Case 3 of CLRS when x is its parent's left
+    child and w is BLACK with a RED left child
+    """
+    
+    g = Red_Black_Tree()
+    
+    n3 = Red_Black_Node(3)
+    n1 = Red_Black_Node(1)
+    n7 = Red_Black_Node(7)
+    n2 = Red_Black_Node(2)
+    n5 = Red_Black_Node(5)
+    n8 = Red_Black_Node(8)
+    n4 = Red_Black_Node(4)
+    n6 = Red_Black_Node(6)
+    
+    n3.color = BLACK
+    n1.color = BLACK
+    n7.color = BLACK
+    n2.color = RED
+    n5.color = RED
+    n8.color = BLACK
+    n4.color = BLACK
+    n6.color = BLACK
+    
+    n3.p = g.nil
+    n3.left = n1
+    n1.p = n3
+    n3.right = n7
+    n7.p = n3
+    
+    n1.left = g.nil
+    n1.right = n2
+    n2.p = n1
+    
+    n2.left = g.nil
+    n2.right = g.nil
+    
+    n7.left = n5
+    n5.p = n7
+    n7.right = n8
+    n8.p = n7
+    
+    n5.left = n4
+    n4.p = n5
+    n5.right = n6
+    n6.p = n5
+    
+    n4.left = g.nil
+    n4.right = g.nil
+    
+    n6.left = g.nil
+    n6.right = g.nil
+    
+    n8.left = g.nil
+    n8.right = g.nil
+    
+    g.root = n3
+    g.Delete_Fixup(n1)
+    
+    self.test_bst(g)
+    self.test_properties(g)
+  
+  def test_case_3_2(self):
+    """
+    Test that Delete_Fixup resolves Case 3 of CLRS when x is its parent's right
+    child and w is BLACK with a RED left child
+    """
+    
+    g = Red_Black_Tree()
+    
+    n6 = Red_Black_Node(6)
+    n4 = Red_Black_Node(4)
+    n7 = Red_Black_Node(7)
+    n2 = Red_Black_Node(2)
+    n5 = Red_Black_Node(5)
+    n1 = Red_Black_Node(1)
+    n3 = Red_Black_Node(3)
+    n8 = Red_Black_Node(8)
+    
+    n6.color = BLACK
+    n4.color = BLACK
+    n7.color = BLACK
+    n2.color = RED
+    n5.color = BLACK
+    n1.color = BLACK
+    n3.color = BLACK
+    n8.color = RED
+    
+    n6.p = g.nil
+    n6.left = n4
+    n4.p = n6
+    n6.right = n7
+    n7.p = n6
+    
+    n4.left = n2
+    n2.p = n4
+    n4.right = n5
+    n5.p = n4
+    
+    n2.left = n1
+    n1.p = n2
+    n2.right = n3
+    n3.p = n2
+    
+    n1.left = g.nil
+    n1.right = g.nil
+    
+    n3.left = g.nil
+    n3.right = g.nil
+    
+    n5.left = g.nil
+    n5.right = g.nil
+    
+    n7.left = g.nil
+    n7.right = n8
+    n8.p = n7
+    
+    n8.left = g.nil
+    n8.right = g.nil
+    
+    g.root = n6
+    g.Delete_Fixup(n7)
+    
+    self.test_bst(g)
+    self.test_properties(g)
+  
+  def test_case_4_1(self):
+    """
+    Test that Delete_Fixup resolves Case 4 of CLRS when x is its parent's left
+    child and w is BLACK with a RED right child
+    """
+    g = Red_Black_Tree()
+    
+    n3 = Red_Black_Node(3)
+    n1 = Red_Black_Node(1)
+    n5 = Red_Black_Node(5)
+    n2 = Red_Black_Node(2)
+    n4 = Red_Black_Node(4)
+    n7 = Red_Black_Node(7)
+    n6 = Red_Black_Node(6)
+    n8 = Red_Black_Node(8)
+    
+    n3.color = BLACK
+    n1.color = BLACK
+    n5.color = BLACK
+    n2.color = RED
+    n4.color = BLACK
+    n7.color = RED
+    n6.color = BLACK
+    n8.color = BLACK
+    
+    n3.p = g.nil
+    n3.left = n1
+    n1.p = n3
+    n3.right = n5
+    n5.p = n3
+    
+    n1.left = g.nil
+    n1.right = n2
+    n2.p = n1
+    
+    n2.left = g.nil
+    n2.right = g.nil
+    
+    n5.left = n4
+    n4.p = n5
+    n5.right = n7
+    n7.p = n5
+    
+    n4.left = g.nil
+    n4.right = g.nil
+    
+    n7.left = n6
+    n6.p = n7
+    n7.right = n8
+    n8.p = n7
+    
+    n6.left = g.nil
+    n6.right = g.nil
+    
+    n8.left = g.nil
+    n8.right = g.nil
+    
+    g.root = n3
+    g.Delete_Fixup(n1)
+    
+    self.test_bst(g)
+    self.test_properties(g)
+  
+  def test_case_4_2(self):
+    """
+    Test that Delete_Fixup resolves Case 4 of CLRS when x is its parent's right
+    child and w is BLACK with a RED right child
+    """
+    
+    g = Red_Black_Tree()
+    
+    n6 = Red_Black_Node(6)
+    n2 = Red_Black_Node(2)
+    n7 = Red_Black_Node(7)
+    n1 = Red_Black_Node(1)
+    n4 = Red_Black_Node(4)
+    n3 = Red_Black_Node(3)
+    n5 = Red_Black_Node(5)
+    n8 = Red_Black_Node(8)
+    
+    n6.color = BLACK
+    n2.color = BLACK
+    n7.color = BLACK
+    n1.color = BLACK
+    n4.color = RED
+    n3.color = BLACK
+    n5.color = BLACK
+    n7.color = BLACK
+    n8.color = RED
+    
+    n6.p = g.nil
+    n6.left = n2
+    n2.p = n6
+    n6.right = n7
+    n7.p = n6
+    
+    n2.left = n1
+    n1.p = n2
+    n2.right = n4
+    n4.p = n2
+    
+    n1.left = g.nil
+    n1.right = g.nil
+    
+    n4.left = n3
+    n3.p = n4
+    n4.right = n5
+    n5.p = n4
+    
+    n3.left = g.nil
+    n3.right = g.nil
+    
+    n5.left = g.nil
+    n5.right = g.nil
+    
+    n7.left = g.nil
+    n7.right = n8
+    n8.p = n7
+    
+    n8.left = g.nil
+    n8.right = g.nil
+    
+    g.root = n6
+    g.Delete_Fixup(n7)
+    
+    self.test_bst(g)
+    self.test_properties(g)
+
+class Red_Black_Tree_Advanced(Common_Functions):  
+  """
+  Performs high-level black box functionality tests
+  """
+  
+  def runTest(self):
+    tests = [
+            self.test_100,
+            self.test_100_random
+            ]
+
+    for test in tests:
+      test()
+  
+  def test_100(self):
+    """
+    Inserts and deletes 100 nodes, verifying that all 5 properties of Red Black
+    Trees are maintained.
     """
     
     g = Red_Black_Tree()
     
     for i in range(100):
+      self.test_bst(g)
+      self.test_properties(g)
+      
       g.Insert(i)
     
-    self.recursive_bst(g, g.root)
+    # Verify that all nodes were inserted
+    self.assertEqual(g.Size(), 100)
+    
+    for i in range(100):
+      self.test_bst(g)
+      self.test_properties(g)
+      
+      g.Delete(i)
+    
+    # Verify that the tree is empty
+    self.assertTrue(g.isEmpty())
   
-  def test_properties(self):
+  def test_100_random(self):
     """
-    Inserts 100 nodes and verifies that all 5 properties of Red Black Trees
-    are maintained.
+    Inserts and deletes 100 nodes in random order, verifying that all 5
+    properties of Red Black Trees are maintained
     """
     
+    g = Red_Black_Tree()
+    
+    insert_order = np.random.permutation(100)
+    delete_order = np.random.permutation(100)
+    
+    for i in insert_order:
+      self.test_bst(g)
+      self.test_properties(g)
+      
+      g.Insert(i)
+    
+    # Verify that all nodes were inserted
+    self.assertEqual(g.Size(), 100)
+    
+    for i in delete_order:
+      self.test_bst(g)
+      self.test_properties(g)
+      
+      g.Delete(i)
+    
+    self.assertTrue(g.isEmpty())
     
 
 if __name__ == "__main__":
